@@ -3,9 +3,9 @@
 Copyright (c) 2008-2024 synodriver <diguohuangjiajinweijun@gmail.com>
 """
 import argparse
-import time
 import asyncio
-from typing import Optional, List
+import time
+from typing import List, Optional
 
 
 class PingClientProtocol(asyncio.DatagramProtocol):
@@ -29,6 +29,12 @@ class PingClientProtocol(asyncio.DatagramProtocol):
             self._close_waiter.set_exception(exc)
         else:
             self._close_waiter.set_result(None)
+
+    def pause_writing(self):
+        self.drain_waiter.clear()
+
+    def resume_writing(self):
+        self.drain_waiter.set()
 
     async def drain(self):
         await self.drain_waiter.wait()
@@ -84,8 +90,10 @@ async def main():
     loop = asyncio.get_running_loop()
     clients = {}
     for port in ports:
-        _, protocol = await loop.create_datagram_endpoint(lambda: PingClientProtocol(args.timeout, loop),
-                                                                    remote_addr=(args.host, port))
+        _, protocol = await loop.create_datagram_endpoint(
+            lambda: PingClientProtocol(args.timeout, loop),
+            remote_addr=(args.host, port),
+        )
         clients[port] = protocol
     print(f"ping {args.host}:{args.port} with timeout {args.timeout}")
 
@@ -105,6 +113,7 @@ async def main():
         #     print("ping timeout")
         # else:
         #     print(f"latency is {latency}ns")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

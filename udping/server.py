@@ -2,13 +2,13 @@
 """
 Copyright (c) 2008-2024 synodriver <diguohuangjiajinweijun@gmail.com>
 """
-import asyncio
 import argparse
-from typing import Tuple, Dict, List
+import asyncio
+from typing import Dict, List, Tuple
 
 
 class PingServerProtocol(asyncio.DatagramProtocol):
-    def __init__(self, loop: asyncio.AbstractEventLoop=None):
+    def __init__(self, loop: asyncio.AbstractEventLoop = None):
         self.transport = None
         self.drain_waiter = asyncio.Event()
         self.drain_waiter.set()
@@ -65,8 +65,12 @@ async def main():
     loop = asyncio.get_running_loop()
     servers: Dict[int, Tuple[PingServerProtocol, PingServerProtocol]] = {}
     for port in ports:
-        _, protocol_v4 = await loop.create_datagram_endpoint(PingServerProtocol, local_addr=("0.0.0.0", port))
-        _, protocol_v6 = await loop.create_datagram_endpoint(PingServerProtocol, local_addr=("::", port))
+        _, protocol_v4 = await loop.create_datagram_endpoint(
+            PingServerProtocol, local_addr=("0.0.0.0", port)
+        )
+        _, protocol_v6 = await loop.create_datagram_endpoint(
+            PingServerProtocol, local_addr=("::", port)
+        )
         servers[port] = (protocol_v4, protocol_v6)
     print(f"listen on port 0.0.0.0:{args.port}; [::]:{args.port}")
     try:
